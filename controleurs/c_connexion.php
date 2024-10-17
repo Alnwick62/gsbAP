@@ -11,6 +11,7 @@ switch($action){
 		include("vues/v_connexion.php");
 		break;
 	}
+
 	case 'valideConnexion':{
 		$login = $_POST['login'];
 		$mdp = $_POST['mdp'];
@@ -21,16 +22,20 @@ switch($action){
 			include("vues/v_connexion.php");
 		}
 		else { 
-                        $infosMedecin = $pdo->donneLeMedecinByMail($login);
+            $infosMedecin = $pdo->donneLeMedecinByMail($login);
 			$id = $infosMedecin['id'];
 			$nom =  $infosMedecin['nom'];
 			$prenom = $infosMedecin['prenom'];
 			connecter($id,$nom,$prenom);
                        
-			include("vues/v_sommaire.php");
+			include("vues/v_code.php");
 			}
 
 			break;	
+	}
+	case 'validecode' :{
+		include("vues/v_sommaire.php");
+		break;
 	}
        
         

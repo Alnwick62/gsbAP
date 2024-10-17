@@ -1,7 +1,7 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-    <title>GSB -extranet</title>
+    <title>GSB - extranet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -27,26 +27,19 @@
 		<div class="col-md-4 col-md-offset-4">
 			<div class="login-wrapper">
 				<div class="box">
-						
-                                    <div class="content-wrap">
-						<legend>je suis médecin, je souhaite créer un compte</legend>
-							<form method="post" action="index.php?uc=creation&action=valideCreation">
-                                                            <input name="login" class="form-control" type="email" placeholder="mail"/>
-							    <input name="mdp" class="form-control" type="password" placeholder="password"/>
-                                                            <input name="prénom" class="form-control" type="text" placeholder="prénom"/>
-                                                            <input name="nom" class="form-control" type="text" placeholder="nom"/>
-								<br>
-                <input type="checkbox" id="casepolitique" name="casepolitique" required style="width: 40px; height: 40px";>
-                <br>
-                <br>
-                <p>J'atteste avoir lu et accepte notre <a href="./vues/v_politiqueprotectiondonnees.html" style="color: blue; text-decoration: none;">politique de protection des données</a></p>
-
-                <br>
-                                                            <input type="submit" class="btn btn-primary signup" value="Créer"/>
+					<div class="content-wrap">
+						<legend>Entrez le code de confirmation : </legend>
+							<form method="post" action="index.php?uc=connexion&action=valideConnexion">
+								<input name="code" class="form-control" type="text" placeholder="Entrez le code">
+								</br>
+								<input type="submit" class="btn btn-primary signup" value="Se connecter">
 							</form>
 							</br>
-						
-					</div>	
+                                                <br/>
+                                                
+                                        </div>	
+                                     
+                                    
 				</div>
 			</div>
 		</div>

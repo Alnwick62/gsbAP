@@ -13,11 +13,18 @@ switch($action){
 	}
 	case 'valideCreation':{
 		
-           
+        $leNom = htmlspecialchars($_POST['nom']);
+        $lePrenom = htmlspecialchars($_POST['prénom']);
 		$leLogin = htmlspecialchars($_POST['login']);
                 $lePassword = htmlspecialchars($_POST['mdp']);
         
-        
+                if (!isset($_POST['casepolitique'])) {
+                    echo 'Vous devez accepter la politique de protection des données pour créer un compte.<br/>';
+                    $rempli = false;
+                } else {
+                    $rempli = true;
+                }
+
         if ($leLogin == $_POST['login'])
         {
              $loginOk = true;
@@ -31,7 +38,7 @@ switch($action){
         //test récup données
         //echo $leLogin.' '.$lePassword;
         $rempli=false;
-        if ($loginOk && $passwordOk){
+        if ($loginOk && $passwordOk  ){
         //obliger l'utilisateur à saisir login/mdp
         $rempli=true; 
         if (empty($leLogin)==true) {
@@ -82,7 +89,7 @@ switch($action){
         }
         if($rempli && $loginOk && $passwordOk){
                 echo 'tout est ok, nous allons pouvoir créer votre compte...<br/>';
-                $executionOK = $pdo->creeMedecin($leLogin,$lePassword);       
+                $executionOK = $pdo->creeMedecin($leLogin,$lePassword,$leNom,$lePrenom);       
                
                 if ($executionOK==true){
                     echo "c'est bon, votre compte a bien été créé ;-)";

@@ -97,7 +97,26 @@ function input_data($data){
 	  return $hex;
         
     }
-    
-    
-    
+    function testPortabilite($id) {
+		portabilite($id);
+		$fichier = '../portabilite/' . $id . ".json";
+		
+		if (file_exists($fichier)) {
+			$data = json_decode(file_get_contents($fichier), true);
+			if ($data) {
+				print_r($data);
+			} else {
+				echo "Le fichier JSON est vide ou invalide.\n";
+			}
+		} else {
+			echo "Le fichier n'a pas été généré.\n";
+		}
+	}
+	function portabilite($id){
+		$donnees = PdoGsb::getPdoGsb()->donneMedecin($id);
+		$fichier ='../portabilite/'.$id.".json";
+		file_put_contents($fichier, json_encode($donnees));
+		return $fichier;
+	}
+
 ?>

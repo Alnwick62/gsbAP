@@ -46,7 +46,6 @@ else {
         
         <li class="active"><a href="index.php?uc=etatFrais&action=selectionnerMois">M'inscrire à une visio</a></li> 
        
-        <a class="navbar-brand" href="index.php?uc=droits&action=portabilite">Récupérer mes données</a>
       </ul>
       <ul class="nav navbar-nav navbar-right">
 		  <li><a><?php echo $_SESSION['prenom']."  ".$_SESSION['nom']?></a></li>
@@ -58,8 +57,7 @@ else {
 </nav>
 
 
-
-	
+<a href="<?php echo './portabilite/' . $_SESSION['id'] . '.json'?>" download="test">Telecharger</a> 
 	<div class="page-content">
     	<div class="row">
 

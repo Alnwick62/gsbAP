@@ -1,5 +1,5 @@
 <?php
-
+require_once 'fct.inc.php';
 /** 
  * Classe d'accÃ¨s aux donnÃ©es. 
  
@@ -17,10 +17,10 @@
  */
 
 class PdoGsb{   		
-      	private static $serveur='mysql:host=localhost:3308';
-      	private static $bdd='dbname=gsbExtranet';   		
-      	private static $user='root' ;    		
-      	private static $mdp='' ;	
+      	private static $serveur='mysql:host=localhost';
+      	private static $bdd='dbname=gsbextranet';   		
+      	private static $user='gsbextranetAdmin' ;    		
+      	private static $mdp='Lookie62400' ;	
 	private static $monPdo;
 	private static $monPdoGsb=null;
 		
@@ -41,7 +41,7 @@ class PdoGsb{
  
  * Appel : $instancePdoGsb = PdoGsb::getPdoGsb();
  
- * @return l'unique objet de la classe PdoGsb
+ * @return 'l'unique objet de la classe PdoGsb
  */
 	public  static function getPdoGsb(){
 		if(PdoGsb::$monPdoGsb==null){
@@ -62,13 +62,15 @@ function checkUser($login,$pwd):bool {
     //AJOUTER TEST SUR TOKEN POUR ACTIVATION DU COMPTE
     $user=false;
     $pdo = PdoGsb::$monPdo;
-    $monObjPdoStatement=$pdo->prepare("SELECT motDePasse FROM medecin WHERE mail= :login AND token IS NULL");
+    $monObjPdoStatement=$pdo->prepare("SELECT motDePasse
+    FROM medecin WHERE mail= :login AND token IS NULL");
     $bvc1=$monObjPdoStatement->bindValue(':login',$login,PDO::PARAM_STR);
     if ($monObjPdoStatement->execute()) {
         $unUser=$monObjPdoStatement->fetch();
-        if (is_array($unUser)){
-           if ($pwd==$unUser['motDePasse'])
-                $user=true;
+        if (is_array($unUser)) {
+            if (password_verify($pwd, $unUser['motDePasse'])) {
+                $user = true;
+            }
         }
     }
     else
@@ -110,17 +112,18 @@ $leResultat = $pdoStatement->fetch();
 }
 
 
-public function creeMedecin($email, $mdp)
+public function creeMedecin($email, $mdp, $nom, $prenom)
 {
-   
-    $pdoStatement = PdoGsb::$monPdo->prepare("INSERT INTO medecin(id,mail, motDePasse,dateCreation,dateConsentement) "
-            . "VALUES (null, :leMail, :leMdp, now(),now())");
+    $mdpverif = password_hash($mdp, PASSWORD_DEFAULT);
+    
+    $pdoStatement = PdoGsb::$monPdo->prepare("INSERT INTO medecin(id,nom,prenom,mail, motDePasse,dateCreation,dateConsentement) "
+            . "VALUES (null,:leNom, :lePrenom, :leMail, :leMdp, now(),now())");
+            $bv4 = $pdoStatement->bindValue(':leNom', $nom); 
+    $bv3 = $pdoStatement->bindValue(':lePrenom', $prenom);
     $bv1 = $pdoStatement->bindValue(':leMail', $email);
-   
-    $bv2 = $pdoStatement->bindValue(':leMdp', $mdp);
+    $bv2 = $pdoStatement->bindValue(':leMdp', $mdpverif); 
     $execution = $pdoStatement->execute();
     return $execution;
-    
 }
 
 
@@ -138,28 +141,46 @@ function testMail($email){
     return $mailTrouve;
 }
 
+function donneMedecin($id) {
+    $pdo = PdoGsb::$monPdo;
+    $monObjPdoStatement = $pdo->prepare("SELECT nom, prenom, mail, dateCreation, rpps, dateConsentement, anneeNaissance, anneeDiplome, Telephone
+                                         FROM medecin WHERE id = :id");
+    $monObjPdoStatement->bindValue(':id', $id, PDO::PARAM_INT);
+    if ($monObjPdoStatement->execute()) {
+        $unUser = $monObjPdoStatement->fetch(PDO::FETCH_ASSOC); 
+        if ($unUser !== false) {
+            return $unUser;  
+        } else {
+            throw new Exception("Aucun médecin trouvé");
+        }
+    } else {
+        throw new Exception("Erreur");
+    }
+}
 
 
-
+        
+ 
 function connexionInitiale($mail){
      $pdo = PdoGsb::$monPdo;
     $medecin= $this->donneLeMedecinByMail($mail);
     $id = $medecin['id'];
-    $this->ajouteConnexionInitiale($id);
+    $this->ajouteConnexion($id);
     
 }
 
-function ajouteConnexionInitiale($id){
-    $pdoStatement = PdoGsb::$monPdo->prepare("INSERT INTO historiqueconnexion "
-            . "VALUES (:leMedecin, now(), now())");
-    $bv1 = $pdoStatement->bindValue(':leMedecin', $id);
-    $execution = $pdoStatement->execute();
-    return $execution;
-    
+function ajouteConnexion($id) {
+    $pdoStatement = PdoGsb::$monPdo->prepare("INSERT INTO historiqueconnexion (idMedecin, dateConnexion) VALUES (:idMedecin, NOW())");
+    $pdoStatement->bindValue(':idMedecin', $id, PDO::PARAM_INT);
+    if ($pdoStatement->execute()) {
+        return true;  
+    } else {
+        throw new Exception("Erreur lors de l'ajout de la connexion.");
+    }
 }
-function donneinfosmedecin($id){
-  
-       $pdo = PdoGsb::$monPdo;
+
+function donneInfoPortabilite($id){
+    $pdo = PdoGsb::$monPdo;
            $monObjPdoStatement=$pdo->prepare("SELECT id,nom,prenom FROM medecin WHERE id= :lId");
     $bvc1=$monObjPdoStatement->bindValue(':lId',$id,PDO::PARAM_INT);
     if ($monObjPdoStatement->execute()) {
@@ -170,6 +191,33 @@ function donneinfosmedecin($id){
         throw new Exception("erreur");
            
     
+
+}
+
+function ajouteCodeBDD($id_medecin) {
+    $code = generateCode();
+    $pdoStatement = PdoGsb::$monPdo->prepare("INSERT INTO authentification (code, id_medecin, temps_co) 
+    VALUES (:code, :id_medecin, NOW())");
+    $pdoStatement->bindValue(':code', $code, PDO::PARAM_STR);
+    $pdoStatement->bindValue(':id_medecin', $id_medecin, PDO::PARAM_INT);
+    if ($pdoStatement->execute()) {
+        return true;  
+    } else {
+        throw new Exception("Erreur lors de l'ajout de la connexion avec code.");
+    }
+}
+
+function donneinfosmedecin($id){
+  
+       $pdo = PdoGsb::$monPdo;
+           $monObjPdoStatement=$pdo->prepare("SELECT id,nom,prenom FROM medecin WHERE id= :lId");
+    $bvc1=$monObjPdoStatement->bindValue(':lId',$id,PDO::PARAM_INT);
+    if ($monObjPdoStatement->execute()) {
+        $unUser=$monObjPdoStatement->fetch();
+   
+    }
+    else
+        throw new Exception("erreur");   
 }
 
 
